@@ -247,7 +247,7 @@ defmodule Ron do
     List.to_tuple(Enum.map(tuple, fn v -> traverse([v]) end))
   end
 
-  def traverse(node) do
+  defp traverse(node) do
     node = hd(node)
 
     case node do
@@ -266,4 +266,12 @@ defmodule Ron do
       {:string, string} -> string
     end
   end
+
+  def decode(str) do
+    case Ron.Parser.parse(str) do
+      {:ok, res, _, _, _, _} -> traverse(res)
+      {:error, _, _, _, _, _} -> raise "Failed to parse ron."
+    end
+  end
+
 end
