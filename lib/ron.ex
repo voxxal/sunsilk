@@ -66,7 +66,6 @@ defmodule Ron.Parser do
     |> reduce({List, :to_float, []})
     |> unwrap_and_tag(:float)
 
-
   # TODO support unicode hexs (also actually fix string_escape sequences)
   string_escape = utf8_char([?\\]) |> utf8_char([?", ?\\, ?b, ?f, ?n, ?r, ?t])
 
@@ -115,11 +114,13 @@ defmodule Ron.Parser do
 
   list =
     ignore(utf8_char([?[]))
+    |> ignore(ws)
     |> optional(
       parsec(:value)
       |> repeat(ignore(comma) |> parsec(:value))
       |> ignore(optional(comma))
     )
+    |> ignore(ws)
     |> ignore(utf8_char([?]]))
     |> tag(:list)
 
@@ -161,7 +162,7 @@ defmodule Ron.Parser do
 
   ident = choice([ident_std, ident_raw]) |> reduce({List, :to_atom, []}) |> unwrap_and_tag(:ident)
   unit_struct = ident |> ignore(string("()")) |> tag(:unit_struct)
-  tuple_struct = optional(ident) |> ignore(ws) |> concat(tuple) |> tag(:tuple_struct)
+  tuple_struct = ident |> ignore(ws) |> concat(tuple) |> tag(:tuple_struct)
 
   named_field =
     ident
@@ -180,6 +181,7 @@ defmodule Ron.Parser do
       named_field
       |> repeat(ignore(comma) |> concat(named_field))
       |> ignore(optional(comma))
+      |> ignore(ws)
     )
     |> ignore(utf8_char([?)]))
     |> tag(:named_struct)
@@ -227,8 +229,9 @@ defmodule Ron.Parser do
 end
 
 defmodule Ron do
-  defp traverse_named_struct({:named_struct, [{:ident, _} | fields]}) do
-    for field <- fields, into: %{}, do: traverse([field])
+  defp traverse_named_struct({:named_struct, [{:ident, ident} | fields]}) do
+    fields_parsed = for field <- fields, into: %{}, do: traverse([field])
+    {ident, fields_parsed}
   end
 
   defp traverse_named_struct({:named_struct, fields}) do
@@ -250,12 +253,15 @@ defmodule Ron do
   defp traverse(node) do
     node = hd(node)
 
+    # TODO missing a couple things here
     case node do
       {:named_struct, _} -> traverse_named_struct(node)
       {:named_field, [{:ident, ident}, value]} -> {ident, traverse([value])}
+      {:tuple_struct, [{:ident, ident}, tuple]} -> {ident, traverse_tuple(tuple)}
       {:map, _} -> traverse_map(node)
       {:map_entry, _} -> traverse_map_entry(node)
       {:tuple, _} -> traverse_tuple(node)
+      {:enum_variant_unit, [{:ident, ident}]} -> ident
       {:list, list} -> Enum.map(list, fn v -> traverse([v]) end)
       {:char, char} -> hd(char)
       {:bool, bool} -> bool
@@ -264,6 +270,8 @@ defmodule Ron do
       {:signed, [?+, {:num, num}]} -> num
       {:float, float} -> float
       {:string, string} -> string
+      {:option_none, []} -> nil
+      {:option_some, value} -> traverse([value])
     end
   end
 
@@ -273,5 +281,4 @@ defmodule Ron do
       {:error, _, _, _, _, _} -> raise "Failed to parse ron."
     end
   end
-
 end
