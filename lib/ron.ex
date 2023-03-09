@@ -27,6 +27,36 @@ defmodule Ron.Parser do
 
   comma = ignore(ws) |> string(",") |> ignore(ws)
 
+  extension_name =
+    choice([
+      string("unwrap_newtypes"),
+      string("implicit_some"),
+      string("unwrap_variant_newtypes")
+    ]) |> tag(:extension_name)
+
+  extensions_inner =
+    ignore(string("enable"))
+    |> ignore(ws)
+    |> ignore(utf8_char([?(]))
+    |> concat(extension_name)
+    |> repeat(ignore(comma) |> concat(extension_name))
+    |> optional(ignore(comma))
+    |> ignore(ws)
+    |> ignore(utf8_char([?)]))
+
+  extensions =
+    ignore(utf8_char([?#]))
+    |> ignore(ws)
+    |> ignore(utf8_char([?!]))
+    |> ignore(ws)
+    |> ignore(utf8_char([?[]))
+    |> ignore(ws)
+    |> concat(extensions_inner)
+    |> ignore(ws)
+    |> ignore(utf8_char([?]]))
+    |> ignore(ws)
+    |> tag(:extensions)
+
   digit = utf8_char([?0..?9])
 
   unsigned =
@@ -223,7 +253,7 @@ defmodule Ron.Parser do
 
   defparsecp(:value, value)
 
-  ron = ignore(ws) |> parsec(:value) |> ignore(ws) |> eos()
+  ron = ignore(optional(extensions)) |> ignore(ws) |> parsec(:value) |> ignore(ws) |> eos()
 
   defparsec(:parse, ron)
 end

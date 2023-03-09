@@ -3,3 +3,45 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+@font-face {
+  font-family: "Satoshi";
+  src: local("Satoshi"),
+    url("/fonts/Satoshi-Light.woff") format("woff"),
+    url("/fonts/Satoshi-Light.woff2") format("woff2");
+  font-weight: 300;
+}
+  
+
+@font-face {
+  font-family: "Satoshi";
+  src: local("Satoshi"),
+    url("/fonts/Satoshi-Regular.woff") format("woff"),
+    url("/fonts/Satoshi-Regular.woff2") format("woff2");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: local("Satoshi"),
+    url("/fonts/Satoshi-Medium.woff") format("woff"),
+    url("/fonts/Satoshi-Medium.woff2") format("woff2");
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: local("Satoshi"),
+    url("/fonts/Satoshi-Bold.woff") format("woff"),
+    url("/fonts/Satoshi-Bold.woff2") format("woff2");
+  font-weight: 700;
+}
+  
+
+@font-face {
+  font-family: "Satoshi";
+  src: local("Satoshi"),
+    url("/fonts/Satoshi-Black.woff") format("woff"),
+    url("/fonts/Satoshi-Black.woff2") format("woff2");
+  font-weight: 900;
+}
+  

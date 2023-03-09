@@ -14,7 +14,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: "#FD4F00",
+        brand: "rgb(239, 89, 14)",
+      },
+      fontFamily: {
+        sans: ["Satoshi"],
       }
     },
   },
